@@ -20,6 +20,12 @@ import gui.MenjacnicaGUI;
 import util.SerijalizacijaIUcitavanje;
 import util.URLConnectionUtil;
 
+/**
+ * 
+ * @author Nikola Bakic
+ *
+ */
+
 public class GUIKontroler {
 	private static MenjacnicaGUI glavniProzor;
 	public static LinkedList<Valuta> lista;
