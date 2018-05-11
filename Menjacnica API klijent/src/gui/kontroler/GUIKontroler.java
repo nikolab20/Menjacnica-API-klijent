@@ -1,13 +1,23 @@
 package gui.kontroler;
 
 import java.awt.EventQueue;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.LinkedList;
 
 import javax.swing.JOptionPane;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+
 import domen.Konverzija;
 import domen.Valuta;
 import gui.MenjacnicaGUI;
+import util.SerijalizacijaIUcitavanje;
 import util.URLConnectionUtil;
 
 public class GUIKontroler {
@@ -33,6 +43,12 @@ public class GUIKontroler {
 		});
 	}
 	
+	public static void ugasiAplikaciju() {
+		if (konverzije != null && konverzije.size() > 0)
+			upisiJsonULog();
+		System.exit(0);
+	}
+	
 	private static void ucitajListu() {
 		lista = URLConnectionUtil.getAllCountries();
 		if (lista == null) {
@@ -41,6 +57,15 @@ public class GUIKontroler {
 			System.exit(-1);
 		}
 
+	}
+	
+	public static String[] vratiNaziveSvihDrzava() {
+		String[] nazivi = new String[lista.size()];
+		int brojac = 0;
+		for (Valuta valuta : lista) {
+			nazivi[brojac++] = valuta.getNaziv();
+		}
+		return nazivi;
 	}
 	
 	public static double konvertuj(String drzavaIz, String drzavaU, String vrednost) {
@@ -70,6 +95,8 @@ public class GUIKontroler {
 				return -1;
 			}
 
+			zabeleziKonverziju(from, to, rate);
+
 			return rate * iznos;
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(glavniProzor, "Komunikacija sa serverom neuspesna!", "Greska!",
@@ -77,5 +104,28 @@ public class GUIKontroler {
 			return -1;
 		}
 
+	}
+	
+	private static void upisiJsonULog() {
+		JsonArray konverzijeJson = SerijalizacijaIUcitavanje.serijalizujKonverzije(konverzije);
+
+		try {
+			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("data/log.json")));
+
+			Gson gson = new GsonBuilder().setPrettyPrinting().create();
+			String konverzijeString = gson.toJson(konverzijeJson);
+
+			out.println(konverzijeString);
+			out.close();
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(glavniProzor, "Neuspesno upisivanje konverzija u log!", "Greska!",
+					JOptionPane.ERROR_MESSAGE);
+		}
+
+	}
+	
+	private static void zabeleziKonverziju(String from, String to, double rate) {
+		Konverzija konverzija = new Konverzija(from, to, rate);
+		konverzije.add(konverzija);
 	}
 }
