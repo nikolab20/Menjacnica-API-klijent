@@ -66,4 +66,19 @@ public class URLConnectionUtil {
  
 		return response.toString();
 	}
+	
+	public static double getKurs(String from, String to) throws IOException {
+		String url = "http://free.currencyconverterapi.com/api/v3/convert?q=" + from + "_" + to;
+
+		String result = getContent(url);
+		Gson gson = new GsonBuilder().create();
+		JsonObject jsonResult = gson.fromJson(result, JsonObject.class);
+		int queryNumber = (((JsonObject) jsonResult.get("query")).get("count")).getAsInt();
+		JsonObject kursObjekat = (JsonObject) (((JsonObject) jsonResult.get("results")).get(from + "_" + to));
+		double kurs = kursObjekat.get("val").getAsDouble();
+		if (queryNumber == 0) {
+			return -1;
+		}
+		return kurs;
+	}
 }
